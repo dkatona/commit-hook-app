@@ -1,0 +1,18 @@
+{
+  "name": "commit-hook-app",
+  "description": "Commit hook receiver from bitbucket",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node src/issueUpdater.js"
+  },
+  "dependencies": {
+    "async": "^2.1.4",
+    "body-parser": "~1.15.2",
+    "config": "~1.21.0",
+    "express": "~4.14.1",
+    "express-validator": "^3.1.2",
+    "jira-connector": "2.6.0",
+    "underscore": "~1.8.3",
+    "winston": "^2.3.1"
+  }
+}

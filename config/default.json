@@ -1,0 +1,15 @@
+{
+ "Jira" : {
+   "host" : "<host>",
+   "consumer_key" : "consKey",
+   "private_key_path" : "path",
+   "token": "token",
+   "token_secret": "token_secret"
+ },
+  "RepositoryMapping": {
+    "userservice" : "UserService"
+  },
+  "Authentication" : {
+    "token" : "abcd"
+  }
+}
