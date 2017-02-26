@@ -20,6 +20,8 @@ sample configurations in `config` folder. These configurations are mandatory:
   OAuth token, you can use [jira_get_oauth_token.py](./test/jira_get_oauth_token.py) script.
   * **RepositoryMapping** - mapping of repository names to JIRA components, this setting will be used
   to set Component field
+  * **BranchRegex** - array of regular expressions for matching the branch name, commit is processed only 
+  for branches that match at least one regex from the array
   * **Authentication.token** - each HTTP request requires a token as a query parameter which
   needs to match this setting
   

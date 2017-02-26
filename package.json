@@ -3,7 +3,7 @@
   "description": "Commit hook receiver from bitbucket",
   "version": "1.0.0",
   "scripts": {
-    "start": "node src/issueUpdater.js"
+    "start": "node issueUpdater.js"
   },
   "dependencies": {
     "async": "^2.1.4",
