@@ -52,10 +52,10 @@ function getIssueWithParent(issueKey, callback) {
     logger.debug("action=fetch_issue status=START key=%s", issueKey);
     jira.issue.getIssue({issueKey: issueKey}, function (error, issue) {
         var issues = [issueKey];
-        if (issue.fields.parent) {
-            issues.push(issue.fields.parent.key);
-        }
         if (!error) {
+            if (issue.fields.parent) {
+                issues.push(issue.fields.parent.key);
+            }
             logger.debug("action=fetch_issue status=FINISH keys=%s", issues);
         } else {
             logger.error("action=fetch_issue status=ERROR key=%s error=%s", issueKey, JSON.stringify(error));
