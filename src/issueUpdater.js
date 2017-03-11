@@ -45,10 +45,7 @@ app.post('/repositoryPush', function (req, res) {
     var repository = repositoryPush.repository;
     var branch = repositoryPush.branchName;
 
-    if (!shouldBeProcessed(branch)) {
-        logger.info("Branch %s does not match branch regexes=%s, skipping...", branch, branchRegex);
-        res.status(200).json({"status" : "Not processed, branch=" + branch +
-                                         " does not match branch regex whitelist=" + branchRegex});
+    if (!shouldBeProcessed(repositoryPush, res)) {
         return;
     }
 
@@ -90,10 +87,24 @@ app.post('/repositoryPush', function (req, res) {
 
 });
 
-function shouldBeProcessed(branch) {
-    return branchRegex.some(function (regex) {
+function shouldBeProcessed(repositoryPush, res) {
+    var branch = repositoryPush.branchName;
+    var branchMatched = branchRegex.some(function (regex) {
         return branch.match(regex);
     });
+    if (!branchMatched) {
+        logger.info("Branch %s does not match branch regexes=%s, skipping...", branch, branchRegex);
+        res.status(200).json({"status" : "Not processed, branch=" + branch +
+                                         " does not match branch regex whitelist=" + branchRegex});
+        return false;
+    }
+    var commitMessage = repositoryPush.commitMessage;
+    if (commitMessage.indexOf("Revert") !== -1) {
+        logger.info("Commit is a revert, commit message=%s, skipping...",commitMessage);
+        res.status(200).json({"status" : "Not processed, commit is a revert"});
+        return false;
+    }
+    return true;
 }
 
 var server = app.listen(process.env.PORT || 8080, function () {
