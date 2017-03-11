@@ -52,9 +52,9 @@ app.post('/repositoryPush', function (req, res) {
     logger.info("action=process_commit status=START issueKeys=%s, repository=%s, branch=%s",
                 issueKeys, repository, branch);
     if (!issueKeys) {
-        logger.error("action=process_commit status=ERROR reason=issueKeys_empty commitMessage='%s'",
+        logger.info("action=process_commit status=ERROR reason=issueKeys_empty commitMessage='%s'",
                      repositoryPush.commitMessage);
-        res.status(400).json({"error": "issueKeys are empty - bad commit message"});
+        res.status(200).json({"status": "issueKeys are empty - bad commit message"});
         return;
     }
     var componentName = repositoryMapping.has(repository) ? repositoryMapping.get(repository) : null;
