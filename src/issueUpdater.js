@@ -104,6 +104,11 @@ function shouldBeProcessed(repositoryPush, res) {
         res.status(200).json({"status" : "Not processed, commit is a revert"});
         return false;
     }
+    if (repositoryPush.branchCreated) {
+        logger.info("Created branch %s, skipping", branch);
+        res.status(200).json({"status" : "Not processed, branch was created instead of commit"});
+        return false;
+    }
     return true;
 }
 

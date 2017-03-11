@@ -8,6 +8,9 @@ function RepositoryPush(json) {
     this.repository = json.repository.name;
 
     var newChange = json.push.changes[0].new;
+    //if branch is created, created=true
+    //if commit is pushed to an existing branch, created=false
+    this.branchCreated = json.push.changes[0].created;
     this.changeType = newChange.type;
     this.branchName = newChange.name;
     this.commitHash = newChange.target.hash;
