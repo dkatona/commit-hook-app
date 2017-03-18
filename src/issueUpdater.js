@@ -89,6 +89,12 @@ app.post('/repositoryPush', function (req, res) {
 
 function shouldBeProcessed(repositoryPush, res) {
     var branch = repositoryPush.branchName;
+    if (!branch) {
+        logger.info("Branch not specified");
+        res.status(200).json({"status" : "Branch not specified in new changes"});
+        return false;
+    }
+
     var branchMatched = branchRegex.some(function (regex) {
         return branch.match(regex);
     });

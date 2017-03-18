@@ -11,12 +11,14 @@ function RepositoryPush(json) {
     //if branch is created, created=true
     //if commit is pushed to an existing branch, created=false
     this.branchCreated = json.push.changes[0].created;
-    this.changeType = newChange.type;
-    this.branchName = newChange.name;
-    this.commitHash = newChange.target.hash;
-    this.commitAuthor = newChange.target.author.username;
-    this.commitMessage = newChange.target.message;
-    this.commitDate = newChange.target.date;
+    if (newChange) {
+        this.changeType = newChange.type;
+        this.branchName = newChange.name;
+        this.commitHash = newChange.target.hash;
+        this.commitAuthor = newChange.target.author.username;
+        this.commitMessage = newChange.target.message;
+        this.commitDate = newChange.target.date;
+    }
     this.issueKeys = issueKeys(this.commitMessage);
 }
 
