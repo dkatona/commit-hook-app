@@ -3,14 +3,14 @@
 var fs = require('fs');
 var logger = require('./setup/logSetup').logger;
 
-function ReleaseInfo(masterVersion, releaseVersion) {
-    this.masterVersion = masterVersion;
+function ReleaseInfo(developmentVersion, releaseVersion) {
+    this.developmentVersion = developmentVersion;
     this.releaseVersion = releaseVersion;
 }
 
 ReleaseInfo.prototype.getFixVersion = function(branch) {
     if (branch === "master") {
-        return this.masterVersion;
+        return this.developmentVersion;
     } else if (branch.startsWith("release")) {
         return this.releaseVersion;
     } else {
@@ -19,7 +19,7 @@ ReleaseInfo.prototype.getFixVersion = function(branch) {
 };
 
 function validateReleaseInfo(req,callback) {
-    req.checkBody("masterVersion", "Fix version for master can't be empty").notEmpty();
+    req.checkBody("developmentVersion", "Fix version for development can't be empty").notEmpty();
     req.checkBody("releaseVersion", "Fix version for release can't be empty").notEmpty();
 
     req.getValidationResult().then(callback);
@@ -27,7 +27,7 @@ function validateReleaseInfo(req,callback) {
 
 function fromRequest(req) {
     var releaseInfo = req.body;
-    return new ReleaseInfo(releaseInfo.masterVersion, releaseInfo.releaseVersion);
+    return new ReleaseInfo(releaseInfo.developmentVersion, releaseInfo.releaseVersion);
 }
 
 function loadFromFile(filePath) {
@@ -37,7 +37,7 @@ function loadFromFile(filePath) {
         var releaseInfo = JSON.parse(json);
         logger.debug("action=load_release_info status=FINISH releaseInfo=%s", json);
 
-        return new ReleaseInfo(releaseInfo.masterVersion, releaseInfo.releaseVersion);
+        return new ReleaseInfo(releaseInfo.developmentVersion, releaseInfo.releaseVersion);
     } catch(e) {
         logger.error("action=load_release_info status=ERROR filePath=%s error=%s", filePath, e);
         return null;
