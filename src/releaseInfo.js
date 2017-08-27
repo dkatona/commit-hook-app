@@ -18,13 +18,6 @@ ReleaseInfo.prototype.getFixVersion = function(branch) {
     }
 };
 
-function validateReleaseInfo(req,callback) {
-    req.checkBody("developmentVersion", "Fix version for development can't be empty").notEmpty();
-    req.checkBody("releaseVersion", "Fix version for release can't be empty").notEmpty();
-
-    req.getValidationResult().then(callback);
-}
-
 function fromRequest(req) {
     var releaseInfo = req.body;
     return new ReleaseInfo(releaseInfo.developmentVersion, releaseInfo.releaseVersion);
@@ -58,7 +51,6 @@ function storeToFile(filePath, releaseInfo) {
 
 module.exports = {
     ReleaseInfo: ReleaseInfo,
-    validateReleaseInfo: validateReleaseInfo,
     loadFromFile : loadFromFile,
     storeToFile: storeToFile,
     fromRequest: fromRequest

@@ -27,12 +27,18 @@ sample configurations in `config` folder. These configurations are mandatory:
   
 There is a second configuration `releaseInfo.json` that is also writable by the app - it stores
 mapping between different versions and Fix version fields in JIRA. The setting can be changed through API.
+
+You can override default mapping from `releaseInfo.json` by calling API with jiraKey in path - that call
+creates `releaseInfo-jiraKey.json` configuration in the same directory as the original file.
     
 ### Endpoints
 
  * GET **/releaseInfo** - returns release information - the content of the releaseInfo.json configuration
+ * GET **/releaseInfo/:jiraKey** - returns release information for specific JIRA project with jiraKey. 
+ Serves as an override of default configuration.
  * POST **/releaseInfo** - allows to set new release information, particularly after branching a new release
   when fix version is changed
+ * POST **/releaseInfo/:jiraKey** - allows to set new release information per specific JIRA project with jiraKey
  * POST **/repositoryPush** - this endpoint needs to be set in bitbucket commit hook as it receives
   payload about the commit push
   

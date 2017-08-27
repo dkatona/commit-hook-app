@@ -2,6 +2,7 @@
 
 //see https://answers.atlassian.com/questions/325865/regex-pattern-to-match-jira-issue-key
 var jira_matcher = /\d+-[A-Z]+(?!-?[a-zA-Z]{1,10})/g;
+var issue_matcher = /([A-Z]+)-\d+/;
 
 function RepositoryPush(json) {
     this.actor = json.actor.username;
@@ -20,10 +21,11 @@ function RepositoryPush(json) {
         this.commitDate = newChange.target.date;
     }
     this.issueKeys = issueKeys(this.commitMessage);
+    this.jiraProjectKey = jiraProjectKey(this.issueKeys);
 }
 
 function issueKeys(commitMessage) {
-    var commitMessageReversed = reverseString(commitMessage)
+    var commitMessageReversed = reverseString(commitMessage);
     var matched = commitMessageReversed.match(jira_matcher);
 
     if (matched) {
@@ -31,8 +33,19 @@ function issueKeys(commitMessage) {
         for (var i = 0; i < matched.length; i++) {
             matched[i] = reverseString(matched[i])
         }
-        matched.reverse()
+        matched.reverse();
         return matched;
+    }
+}
+
+function jiraProjectKey(issueKeys) {
+    if (issueKeys) {
+        for (var i = 0; i < issueKeys.length; i++) {
+            var jiraKeySplit = issue_matcher.exec(issueKeys[i]);
+            if (jiraKeySplit) {
+                return jiraKeySplit[1];
+            }
+        }
     }
 }
 
