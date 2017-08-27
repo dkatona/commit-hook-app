@@ -4,44 +4,60 @@ var _ = require('underscore');
 var jiraClient = require('./jiraClient');
 var RepositoryPush = require('./repositoryPush');
 
+var releaseInfoManager = require('./releaseInfoManager');
+var releaseInfo = require('./releaseInfo');
+
 var config = require('config');
 var repositoryMapping = config.get("RepositoryMapping");
 var branchRegex = config.get("BranchRegex");
-
-var releaseInfo = require('./releaseInfo');
-const RELEASE_INFO_FILE = "./config/releaseInfo.json";
-var currentReleaseInfo = releaseInfo.loadFromFile(RELEASE_INFO_FILE);
 
 var logger = require('./setup/logSetup').logger;
 var app = require('./setup/expressSetup').app;
 
 app.post('/releaseInfo', function (req, res) {
-    releaseInfo.validateReleaseInfo(req, function (result) {
+    processReleaseInfo(req,res);
+});
+
+app.post('/releaseInfo/:jiraKey', function (req, res) {
+    processReleaseInfo(req,res);
+});
+
+function processReleaseInfo(req, res) {
+    releaseInfoManager.validateReleaseInfo(req, function (result) {
         if (!result.isEmpty()) {
             logger.error("New release info invalid, releaseInfo=%s", JSON.stringify(req.body));
             res.status(400).send('There have been validation errors: ' + JSON.stringify(result.array()));
             return;
         }
-        logger.info("action=set_release_info status=START");
+        var jiraKey = req.params.jiraKey;
+
+        logger.info("action=set_release_info status=START jiraKey=%s", jiraKey ? jiraKey : "DEFAULT");
         var newReleaseInfo = releaseInfo.fromRequest(req);
-        currentReleaseInfo = newReleaseInfo;
-        var passed = releaseInfo.storeToFile(RELEASE_INFO_FILE, newReleaseInfo);
+        var passed = releaseInfoManager.updateReleaseInfo(newReleaseInfo, jiraKey);
+
         passed ? res.status(204).end() : res.status(500).send("Error writing release info to a file!");
-
-        logger.info("action=set_release_info status=%s releaseInfo=%s",
-                    passed ? "FINISH" : "ERROR", JSON.stringify(newReleaseInfo));
-
+        logger.info("action=set_release_info jiraKey=%s status=%s releaseInfo=%s",
+                    jiraKey ? jiraKey : "DEFAULT",
+                    passed ? "FINISH" : "ERROR",
+                    JSON.stringify(newReleaseInfo));
     });
-});
+}
 
 app.get('/releaseInfo', function (req, res) {
-    res.send(JSON.stringify(currentReleaseInfo));
+    var releaseInfo = releaseInfoManager.getReleaseInfo();
+    res.send(JSON.stringify(releaseInfo));
+});
+
+app.get('/releaseInfo/:jiraKey', function (req, res) {
+    var releaseInfo = releaseInfoManager.getReleaseInfo(req.params.jiraKey);
+    res.send(JSON.stringify(releaseInfo));
 });
 
 app.post('/repositoryPush', function (req, res) {
     var repositoryPush = new RepositoryPush(req.body);
 
     var issueKeys = repositoryPush.issueKeys;
+    var jiraProjectKey = repositoryPush.jiraProjectKey;
     var repository = repositoryPush.repository;
     var branch = repositoryPush.branchName;
 
@@ -49,8 +65,8 @@ app.post('/repositoryPush', function (req, res) {
         return;
     }
 
-    logger.info("action=process_commit status=START issueKeys=%s, repository=%s, branch=%s",
-                issueKeys, repository, branch);
+    logger.info("action=process_commit status=START issueKeys=%s, jiraProjectKey=%s, repository=%s, branch=%s",
+                issueKeys, jiraProjectKey, repository, branch);
     if (!issueKeys) {
         logger.info("action=process_commit status=ERROR reason=issueKeys_empty commitMessage='%s'",
                      repositoryPush.commitMessage);
@@ -58,12 +74,11 @@ app.post('/repositoryPush', function (req, res) {
         return;
     }
     var componentName = repositoryMapping.has(repository) ? repositoryMapping.get(repository) : null;
-    if (!componentName) {
-        logger.warn("No component defined for repository=%s", repository);
-    }
-    var fixVersion = currentReleaseInfo.getFixVersion(branch);
+
+    var releaseInfoForProject = releaseInfoManager.getReleaseInfo(jiraProjectKey);
+    var fixVersion = releaseInfoForProject.getFixVersion(branch);
     if (!fixVersion) {
-        logger.warn("No fix version defined for branch=%s, current releaseInfo=", branch, currentReleaseInfo);
+        logger.warn("No fix version defined for branch=%s, current releaseInfo=", branch, releaseInfoForProject);
     }
 
     jiraClient.getIssuesWithParents(issueKeys, function (error, issues) {
@@ -119,6 +134,11 @@ function shouldBeProcessed(repositoryPush, res) {
 }
 
 var server = app.listen(process.env.PORT || 8080, function () {
+    releaseInfoManager.reloadReleaseInfo(function (err) {
+        if (err) {
+            process.exit();
+        }
+    });
     logger.info("action=commit_hook_app status=READY port=%d", server.address().port)
 });
 
