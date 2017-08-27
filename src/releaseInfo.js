@@ -9,7 +9,7 @@ function ReleaseInfo(developmentVersion, releaseVersion) {
 }
 
 ReleaseInfo.prototype.getFixVersion = function(branch) {
-    if (branch === "master") {
+    if (branch.startsWith("master") || branch.startsWith("develop")) {
         return this.developmentVersion;
     } else if (branch.startsWith("release")) {
         return this.releaseVersion;

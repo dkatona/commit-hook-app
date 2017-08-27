@@ -9,7 +9,7 @@
   "RepositoryMapping": {
     "userservice" : "UserService"
   },
-  "BranchRegex" : [ "^master$", "^release.*"],
+  "BranchRegex" : [ "^master$", "^release.*", "^develop.*"],
   "Authentication" : {
     "token" : "abcd"
   }
