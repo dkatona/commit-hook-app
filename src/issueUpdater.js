@@ -58,9 +58,7 @@ app.post('/repositoryPush', function (req, res) {
         return;
     }
     var componentName = repositoryMapping.has(repository) ? repositoryMapping.get(repository) : null;
-    if (!componentName) {
-        logger.warn("No component defined for repository=%s", repository);
-    }
+    
     var fixVersion = currentReleaseInfo.getFixVersion(branch);
     if (!fixVersion) {
         logger.warn("No fix version defined for branch=%s, current releaseInfo=", branch, currentReleaseInfo);
