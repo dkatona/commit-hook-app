@@ -25,16 +25,18 @@ function RepositoryPush(json) {
 }
 
 function issueKeys(commitMessage) {
-    var commitMessageReversed = reverseString(commitMessage);
-    var matched = commitMessageReversed.match(jira_matcher);
+    if (commitMessage) {
+        var commitMessageReversed = reverseString(commitMessage);
+        var matched = commitMessageReversed.match(jira_matcher);
 
-    if (matched) {
-        // Also need to reverse all the results!
-        for (var i = 0; i < matched.length; i++) {
-            matched[i] = reverseString(matched[i])
+        if (matched) {
+            // Also need to reverse all the results!
+            for (var i = 0; i < matched.length; i++) {
+                matched[i] = reverseString(matched[i])
+            }
+            matched.reverse();
+            return matched;
         }
-        matched.reverse();
-        return matched;
     }
 }
 
