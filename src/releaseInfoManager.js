@@ -41,7 +41,7 @@ function getReleaseInfo(jiraProjectKey) {
     if (!jiraProjectKey) {
         return releaseInfos.default;
     }
-    return releaseInfos[jiraProjectKey] !== null ? releaseInfos[jiraProjectKey] : releaseInfos.default;
+    return releaseInfos[jiraProjectKey] ? releaseInfos[jiraProjectKey] : releaseInfos.default;
 }
 
 function updateReleaseInfo(newReleaseInfo, jiraProjectKey) {
