@@ -49,7 +49,11 @@ function updateReleaseInfo(newReleaseInfo, jiraProjectKey) {
     var fileName = jiraProjectKey ? "releaseInfo-" + jiraProjectKey + ".json" : "releaseInfo.json";
     var passed = releaseInfo.storeToFile(RELEASE_INFO_DIR + fileName, newReleaseInfo);
     if (passed) {
-        releaseInfos[jiraProjectKey] = newReleaseInfo;
+        if (!jiraProjectKey) {
+            releaseInfos.default = newReleaseInfo;
+        } else {
+            releaseInfos[jiraProjectKey] = newReleaseInfo;
+        }
     }
     return passed;
 }
