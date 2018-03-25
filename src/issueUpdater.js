@@ -9,7 +9,10 @@ var releaseInfo = require('./releaseInfo');
 
 var config = require('config');
 var repositoryMapping = config.get("RepositoryMapping");
+var useCamelCaseComponentName = config.get("UseCamelCaseComponent");
 var branchRegex = config.get("BranchRegex");
+
+const upperCamelCase = require('uppercamelcase');
 
 var logger = require('./setup/logSetup').logger;
 var app = require('./setup/expressSetup').app;
@@ -73,7 +76,7 @@ app.post('/repositoryPush', function (req, res) {
         res.status(200).json({"status": "issueKeys are empty - bad commit message"});
         return;
     }
-    var componentName = repositoryMapping.has(repository) ? repositoryMapping.get(repository) : null;
+    var componentName = getComponentName(repository);
 
     var releaseInfoForProject = releaseInfoManager.getReleaseInfo(jiraProjectKey);
     var fixVersion = releaseInfoForProject.getFixVersion(branch);
@@ -101,6 +104,16 @@ app.post('/repositoryPush', function (req, res) {
     });
 
 });
+
+function getComponentName(repository) {
+    if (repositoryMapping.has(repository)) {
+        return repositoryMapping.get(repository);
+    } else if (useCamelCaseComponentName) {
+        return upperCamelCase(repository);
+    } else {
+        return null;
+    }
+}
 
 function shouldBeProcessed(repositoryPush, res) {
     var branch = repositoryPush.branchName;

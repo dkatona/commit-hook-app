@@ -9,6 +9,7 @@
   "RepositoryMapping": {
     "userservice" : "UserService"
   },
+  "UseCamelCaseComponent": true,
   "BranchRegex" : [ "^master$", "^release.*", "^develop.*"],
   "Authentication" : {
     "token" : "abcd"
