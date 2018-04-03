@@ -10,6 +10,7 @@
     "userservice" : "UserService"
   },
   "UseCamelCaseComponent": true,
+  "IgnoreComponentRepositories": [],
   "BranchRegex" : [ "^master$", "^release.*", "^develop.*"],
   "Authentication" : {
     "token" : "abcd"

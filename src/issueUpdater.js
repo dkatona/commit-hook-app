@@ -10,6 +10,7 @@ var releaseInfo = require('./releaseInfo');
 var config = require('config');
 var repositoryMapping = config.get("RepositoryMapping");
 var useCamelCaseComponentName = config.get("UseCamelCaseComponent");
+var ignoreComponentRepositories = config.get("IgnoreComponentRepositories");
 var branchRegex = config.get("BranchRegex");
 
 const upperCamelCase = require('uppercamelcase');
@@ -106,6 +107,9 @@ app.post('/repositoryPush', function (req, res) {
 });
 
 function getComponentName(repository) {
+    if (_.contains(ignoreComponentRepositories, repository)){
+        return null;
+    }
     if (repositoryMapping.has(repository)) {
         return repositoryMapping.get(repository);
     } else if (useCamelCaseComponentName) {
