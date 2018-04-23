@@ -4,19 +4,24 @@ var _ = require('underscore');
 var jiraClient = require('./jiraClient');
 var RepositoryPush = require('./repositoryPush');
 
-var releaseInfoManager = require('./releaseInfoManager');
-var releaseInfo = require('./releaseInfo');
-
 var config = require('config');
 var repositoryMapping = config.get("RepositoryMapping");
 var useCamelCaseComponentName = config.get("UseCamelCaseComponent");
+var defaultReleaseInfoProject = config.get("DefaultReleaseInfoProject");
 var ignoreComponentRepositories = config.get("IgnoreComponentRepositories");
 var branchRegex = config.get("BranchRegex");
 
 const upperCamelCase = require('uppercamelcase');
 
+var ReleaseInfoManager = require('./releaseInfoManager');
+var releaseInfoManager = new ReleaseInfoManager(defaultReleaseInfoProject);
+var releaseInfo = require('./releaseInfo');
+
 var logger = require('./setup/logSetup').logger;
-var app = require('./setup/expressSetup').app;
+var expressSetup = require('./setup/expressSetup');
+expressSetup.configureValidation(jiraClient);
+
+var app = expressSetup.app;
 
 app.post('/releaseInfo', function (req, res) {
     processReleaseInfo(req,res);

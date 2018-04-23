@@ -9,14 +9,23 @@ var logger = require('./setup/logSetup').logger;
 var releaseInfo = require('./releaseInfo');
 var releaseInfos = {};
 
-function validateReleaseInfo(req,callback) {
-    req.checkBody("developmentVersion", "Fix version for development can't be empty").notEmpty();
-    req.checkBody("releaseVersion", "Fix version for release can't be empty").notEmpty();
-
-    req.getValidationResult().then(callback);
+function ReleaseManager(defaultReleaseInfoProject){
+    this.defaultReleaseInfoProject = defaultReleaseInfoProject;
 }
 
-function reloadReleaseInfo(callback) {
+ReleaseManager.prototype.validateReleaseInfo = function(req, callback) {
+    var jiraKey = req.params.jiraKey;
+    var releaseProject = jiraKey ? jiraKey : this.defaultReleaseInfoProject;
+
+    req.checkBody("developmentVersion", "Fix version for development is empty or non-existent").notEmpty()
+        .releaseVersionExists(releaseProject);
+    req.checkBody("releaseVersion", "Fix version for release is empty or non-existent").notEmpty()
+        .releaseVersionExists(releaseProject);
+
+    req.getValidationResult().then(callback);
+};
+
+ReleaseManager.prototype.reloadReleaseInfo = function(callback) {
     glob("./config/releaseInfo*.json", function(err, files) {
         if (err) {
             logger.error("Error reloading releaseInfo configuration!", err);
@@ -35,16 +44,16 @@ function reloadReleaseInfo(callback) {
         logger.info("Configuration " + JSON.stringify(releaseInfos));
         callback();
     });
-}
+};
 
-function getReleaseInfo(jiraProjectKey) {
+ReleaseManager.prototype.getReleaseInfo = function(jiraProjectKey) {
     if (!jiraProjectKey) {
         return releaseInfos.default;
     }
     return releaseInfos[jiraProjectKey] ? releaseInfos[jiraProjectKey] : releaseInfos.default;
-}
+};
 
-function updateReleaseInfo(newReleaseInfo, jiraProjectKey) {
+ReleaseManager.prototype.updateReleaseInfo = function(newReleaseInfo, jiraProjectKey) {
 
     var fileName = jiraProjectKey ? "releaseInfo-" + jiraProjectKey + ".json" : "releaseInfo.json";
     var passed = releaseInfo.storeToFile(RELEASE_INFO_DIR + fileName, newReleaseInfo);
@@ -56,11 +65,6 @@ function updateReleaseInfo(newReleaseInfo, jiraProjectKey) {
         }
     }
     return passed;
-}
+};
 
-module.exports = {
-    validateReleaseInfo: validateReleaseInfo,
-    reloadReleaseInfo: reloadReleaseInfo,
-    getReleaseInfo: getReleaseInfo,
-    updateReleaseInfo: updateReleaseInfo
-}
+module.exports = ReleaseManager;

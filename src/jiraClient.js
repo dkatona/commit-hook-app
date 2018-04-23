@@ -107,8 +107,29 @@ function updateIssues(issueKeys, component, fixVersion, callback) {
     });
 }
 
+function releaseExists(releaseName, project, callback) {
+    logger.debug("action=check_release status=START releaseName=%s project=%s", releaseName, project);
+    var options = jira.project.buildRequestOptions({"projectIdOrKey" : project}, '/version', 'GET', null, {"query" : releaseName});
+    jira.makeRequest(options, function (error, result) {
+        var exists = false;
+        if (!error) {
+            //we need to have at least one release defined with releaseName
+            if (result.values.length >= 1) {
+                exists = true;
+            }
+            logger.debug("action=check_release status=FINISH releaseName=%s project=%s exists=%s",
+                         releaseName, project, exists);
+        } else {
+            logger.error("action=check_release status=ERROR releaseName=%s project=%s error=%s", releaseName, project,
+                         JSON.stringify(error));
+        }
+        callback(error, { "release" : releaseName, "project" : project, "exists" : exists});
+    });
+}
+
 module.exports = {
     jira : jira,
     getIssuesWithParents : getIssuesWithParents,
-    updateIssues : updateIssues
+    updateIssues : updateIssues,
+    releaseExists: releaseExists
 };
