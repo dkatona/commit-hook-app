@@ -1,9 +1,10 @@
 'use strict';
 
 var _ = require('underscore');
+var fs = require('fs');
+var querystring = require('querystring');
 var jiraClient = require('./jiraClient');
 var RepositoryPush = require('./repositoryPush');
-
 var config = require('config');
 var repositoryMapping = config.get("RepositoryMapping");
 var useCamelCaseComponentName = config.get("UseCamelCaseComponent");
@@ -22,6 +23,77 @@ var expressSetup = require('./setup/expressSetup');
 expressSetup.configureValidation(jiraClient);
 
 var app = expressSetup.app;
+
+function verificationReleasedInfo(oldData, newData) {
+    let errors = [];
+    if ('releasedTimestamp' in newData) {
+        errors[errors.length] = "Error: Impossible to change releasedTimestamp attribute directly.";
+    }
+    if ('releasedVersion' in newData) {
+        if (!RegExp(/^R\d{2}-\d{2}$/).test(newData.releasedVersion)) {
+            errors[errors.length] = "Error: the releasedVersion '"+newData.releasedVersion+"' is in the wrong format (Ex. R19-01)";
+        }
+        newData.releasedTimestamp = (new Date()).getTime()
+    }
+    return errors;
+}
+
+function processReleasedInfo(req, res) {
+    let fileName = "./config/releasedInfo.json";
+    let releasedInfoObject = {};
+    if (req.method == 'GET') {
+        try {
+            releasedInfoObject = fs.readFileSync(fileName);
+            res.send(releasedInfoObject);
+        } catch(e) {
+            res.status(500)
+            logger.error("The problem with loading JSON config file "+ fileName);
+        }
+    } else if (req.method == 'POST') {
+        let body = '';
+        req.on('data', chunk => {
+            body += chunk.toString();
+        }).on('end',() => {
+            try {
+                let changes = null
+                try {
+                    // Input is JSON
+                    changes = JSON.parse(body);
+                } catch(ex) {
+                    // Input is standard POST
+                    changes = querystring.parse(body);
+                }
+                if (fs.existsSync(fileName)) {
+                    releasedInfoObject = JSON.parse(fs.readFileSync(fileName));
+                }
+                let errors = verificationReleasedInfo(releasedInfoObject, changes)
+                if (errors.length == 0) {
+                    releasedInfoObject = Object.assign({}, releasedInfoObject, changes);
+                    fs.writeFile(fileName, JSON.stringify(releasedInfoObject, null, " "), function(err) {
+                        if (err) throw err;
+                        logger.info("Update configuration: " + body);
+                        res.end('ok');
+                    });
+                } else {
+                    res.send(errors.join("\n"));
+                    logger.error(errors.join("\n"));
+                    throw Error("Validation failed.");
+                }
+            } catch(e) {
+               res.status(500).end('faild');
+               logger.error("The problem with updating JSON config file "+ fileName);
+            }
+        })
+    }
+}
+
+app.get('/releasedInfo', function (req, res) {
+    processReleasedInfo(req, res)
+});
+
+app.post('/releasedInfo', function (req, res) {
+    processReleasedInfo(req, res)
+});
 
 app.post('/releaseInfo', function (req, res) {
     processReleaseInfo(req,res);
