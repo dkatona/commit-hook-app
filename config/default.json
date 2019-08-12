@@ -9,6 +9,9 @@
   "RepositoryMapping": {
     "userservice" : "UserService"
   },
+  "NoFixVersionRepositories": [
+    "user-service"
+  ],
   "UseCamelCaseComponent": true,
   "DefaultReleaseInfoProject": "XYZ",
   "IgnoreComponentRepositories": [],
