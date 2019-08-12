@@ -10,6 +10,7 @@ var useCamelCaseComponentName = config.get("UseCamelCaseComponent");
 var defaultReleaseInfoProject = config.get("DefaultReleaseInfoProject");
 var ignoreComponentRepositories = config.get("IgnoreComponentRepositories");
 var branchRegex = config.get("BranchRegex");
+var noFixVersionRepositories = config.get("NoFixVersionRepositories");
 
 const upperCamelCase = require('uppercamelcase');
 
@@ -85,9 +86,12 @@ app.post('/repositoryPush', function (req, res) {
     var componentName = getComponentName(repository);
 
     var releaseInfoForProject = releaseInfoManager.getReleaseInfo(jiraProjectKey);
-    var fixVersion = releaseInfoForProject.getFixVersion(branch);
-    if (!fixVersion) {
-        logger.warn("No fix version defined for branch=%s, current releaseInfo=", branch, releaseInfoForProject);
+    var fixVersion = null;
+    if (!noFixVersionRepositories.includes(repository)){
+        fixVersion = currentReleaseInfo.getFixVersion(branch);
+        if (!fixVersion) {
+            logger.warn("No fix version defined for branch=%s, current releaseInfo=", branch, currentReleaseInfo);
+        }
     }
 
     jiraClient.getIssuesWithParents(issueKeys, function (error, issues) {
