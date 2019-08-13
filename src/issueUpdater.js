@@ -87,10 +87,10 @@ app.post('/repositoryPush', function (req, res) {
 
     var releaseInfoForProject = releaseInfoManager.getReleaseInfo(jiraProjectKey);
     var fixVersion = null;
-    if (!noFixVersionRepositories.includes(repository)){
-        fixVersion = currentReleaseInfo.getFixVersion(branch);
+    if (noFixVersionRepositories.indexOf(repository) == -1){
+        fixVersion = releaseInfoForProject.getFixVersion(branch);
         if (!fixVersion) {
-            logger.warn("No fix version defined for branch=%s, current releaseInfo=", branch, currentReleaseInfo);
+            logger.warn("No fix version defined for branch=%s, current releaseInfo=", branch, releaseInfoForProject);
         }
     }
 
