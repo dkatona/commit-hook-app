@@ -9,7 +9,7 @@
   "RepositoryMapping": {
     "userservice" : "UserService"
   },
-  "NoFixVersionRepositories": [
+  "FixVersionRepositories": [
     "user-service"
   ],
   "UseCamelCaseComponent": true,
