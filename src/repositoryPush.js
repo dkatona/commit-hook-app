@@ -5,23 +5,49 @@ var jira_matcher = /\d+-[A-Z]+(?!-?[a-zA-Z]{1,10})/g;
 var issue_matcher = /([A-Z]+)-\d+/;
 
 function RepositoryPush(json) {
-    this.actor = json.actor.username;
-    this.repository = json.repository.name;
+    if (json.ref != null) {
+        console.log(json);
+        parseGithubPayload(json, this);
+    } else {
+        parseBitbucketPayload(json, this);
+    }
+    this.issueKeys = issueKeys(this.commitMessage);
+    this.jiraProjectKey = jiraProjectKey(this.issueKeys);
+}
+
+function parseGithubPayload(json, self) {
+    console.log(json);
+    self.actor = json.pusher.name;
+    self.repository = json.repository.name;
+    //ignore if we something else than heads (e.g. tags)
+    if (json.ref.includes("heads")) {
+        var match = json.ref.match(/refs\/heads\/(.*)/);
+        self.branchName = match[1];
+    }
+    if (json.head_commit != null) {
+        self.commitHash = json.head_commit.sha;
+        self.commitAuthor = json.head_commit.author.name;
+        self.commitMessage = json.head_commit.message;
+        self.commitDate = json.head_commit.timestamp;
+    }
+}
+
+function parseBitbucketPayload(json, self) {
+    self.actor = json.actor.username;
+    self.repository = json.repository.name;
 
     var newChange = json.push.changes[0].new;
     //if branch is created, created=true
     //if commit is pushed to an existing branch, created=false
-    this.branchCreated = json.push.changes[0].created;
+    self.branchCreated = json.push.changes[0].created;
     if (newChange) {
-        this.changeType = newChange.type;
-        this.branchName = newChange.name;
-        this.commitHash = newChange.target.hash;
-        this.commitAuthor = newChange.target.author.username;
-        this.commitMessage = newChange.target.message;
-        this.commitDate = newChange.target.date;
+        self.changeType = newChange.type;
+        self.branchName = newChange.name;
+        self.commitHash = newChange.target.hash;
+        self.commitAuthor = newChange.target.author.username;
+        self.commitMessage = newChange.target.message;
+        self.commitDate = newChange.target.date;
     }
-    this.issueKeys = issueKeys(this.commitMessage);
-    this.jiraProjectKey = jiraProjectKey(this.issueKeys);
 }
 
 function issueKeys(commitMessage) {
