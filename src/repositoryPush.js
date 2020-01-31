@@ -6,7 +6,6 @@ var issue_matcher = /([A-Z]+)-\d+/;
 
 function RepositoryPush(json) {
     if (json.ref != null) {
-        console.log(json);
         parseGithubPayload(json, this);
     } else {
         parseBitbucketPayload(json, this);
@@ -25,7 +24,7 @@ function parseGithubPayload(json, self) {
         self.branchName = match[1];
     }
     if (json.head_commit != null) {
-        self.commitHash = json.head_commit.sha;
+        self.commitHash = json.head_commit.id;
         self.commitAuthor = json.head_commit.author.name;
         self.commitMessage = json.head_commit.message;
         self.commitDate = json.head_commit.timestamp;
