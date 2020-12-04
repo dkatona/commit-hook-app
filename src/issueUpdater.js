@@ -116,7 +116,8 @@ app.post('/repositoryPush', function (req, res) {
 });
 
 function getComponentName(repository) {
-    if (_.contains(ignoreComponentRepositories, repository)){
+    //do not add component to JIRA if a repository is ignored or we ignore all repositories (*)
+    if (_.contains(ignoreComponentRepositories, repository) || _.contains(ignoreComponentRepositories, "*")){
         return null;
     }
     if (repositoryMapping.has(repository)) {
